@@ -37,7 +37,10 @@ namespace Contrôleur_RIB
             {
                 if(ExcelApp != null)
                 {
-                    ExcelApp.Terminate();// Automatically releases the previous file when the user loads a new one without releasing first.
+                    if(ExcelApp.IsOpen)
+                    {
+                        ExcelApp.Terminate();// Automatically releases the previous file when the user loads a new one without releasing first.
+                    }
                 }
                 ExcelApp = new ExcelApp(openFileDialog.FileName);// Initating my Excel object and passing the Excel file to open
                 LoadedFileText = "Fichier chargé : "+openFileDialog.SafeFileName;//Displays the proper filename instead of the entire path for the UI
@@ -48,9 +51,15 @@ namespace Contrôleur_RIB
 
         private void CloseExcelFile_Func()// Release the file for use without closing the application
         {
-            ExcelApp.Terminate();
-            LoadedFileText = "Aucun fichier chargé";// Restoring default value
-            OnPropertyChanged("LoadedFileText");
+            if(ExcelApp != null)
+            {
+                if(ExcelApp.IsOpen)
+                {
+                    ExcelApp.Terminate();
+                    LoadedFileText = "Aucun fichier chargé";// Restoring default value
+                    OnPropertyChanged("LoadedFileText");
+                }
+            }
         }
 
         private void AnalyseRIB_Func()
