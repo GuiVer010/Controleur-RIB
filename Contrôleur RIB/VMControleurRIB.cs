@@ -16,15 +16,20 @@ namespace Contrôleur_RIB
         private ExcelApp excelApp;
         private String loadedFileText;
         private String processProgressText;
+        private List<Country> countryReferences;
         public Command OpenExcelFile { get; set; }
         public Command AnalyseRIB { get; set; }
+        public Command AnalyseIBAN { get; set; }
         public Command CloseExcelFile { get; set; }
+        public Command LoadReferenceFile { get; set; }
 
         public VMControleurRIB()
         {
             OpenExcelFile = new Command(OpenExcelFile_Func);
             AnalyseRIB = new Command(AnalyseRIB_Func);
+            AnalyseIBAN = new Command(AnalyseIBAN_Func);
             CloseExcelFile = new Command(CloseExcelFile_Func);
+            LoadReferenceFile = new Command(LoadReferenceFile_Func);
             LoadedFileText = "Aucun fichier chargé";
             ProcessProgressText = "";
         }
@@ -90,13 +95,57 @@ namespace Contrôleur_RIB
             else
             {
                 MessageBox.Show("Veuillez charger un fichier à analyser", "ControleurRIB", MessageBoxButton.OK, MessageBoxImage.Information);// User clicks "Analyse" button without having a file loaded. No need for this if we can disable the button prior to loading a file.
-            } 
+            }
         }
+
+        private void AnalyseIBAN_Func()
+        {
+            if (ExcelApp != null)
+            {
+                const int columnToOverwrite = 5;
+                if (ExcelApp.ColumnIsEmpty(columnToOverwrite))
+                {
+                    List<String> listOfIBANs = new List<String>();
+                    listOfIBANs = ExcelApp.GetAllIBANs();
+                    AnalyseAllIBANs(listOfIBANs, columnToOverwrite);
+                }
+                else
+                {
+                    if (MessageBox.Show("La colonne N°"+ columnToOverwrite + " n'est pas vide, poursuivre l'exécution écrasera le contenu. Continuer ?", "ControleurRIB", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        List<String> listOfIBANs = new List<String>();
+                        listOfIBANs = ExcelApp.GetAllIBANs();
+                        AnalyseAllIBANs(listOfIBANs, columnToOverwrite);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Veuillez charger un fichier à analyser", "ControleurRIB", MessageBoxButton.OK, MessageBoxImage.Information);// User clicks "Analyse" button without having a file loaded. No need for this if we can disable the button prior to loading a file.
+            }
+        }
+
+        private void LoadReferenceFile_Func()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();// Instanciates the class
+            openFileDialog.Filter = "Tableau Excel |*.xlsx;*.xlsm";// Adds a filter for Excel files only
+            if (openFileDialog.ShowDialog() == DialogResult.OK)// Enters the IF if the user selected a file and clicked OK
+            {
+                ExcelApp = new ExcelApp(openFileDialog.FileName);
+                countryReferences = ExcelApp.CreateReferences();
+                ExcelApp.Terminate();
+            }
+        }
+
         private void AnalyseAllRIBs(List<String> listOfRIBs, int columnToOverwrite)
         {
             List<String> results = new List<String>();
 
-            ProcessProgressText = "Nombre de RIB à traiter : "+listOfRIBs.Capacity.ToString();
+            ProcessProgressText = "Nombre de RIB à traiter : "+listOfRIBs.Count.ToString();
             OnPropertyChanged("ProcessProgressText");
 
             foreach (var rib in listOfRIBs)
@@ -243,8 +292,49 @@ namespace Contrôleur_RIB
                 throw new ArgumentOutOfRangeException("Le caractère à convertir doit être une lettre majuscule dans la plage A-Z");
         }
 
+        private void AnalyseAllIBANs(List<String> listOfIBANs, int columnToOverwrite)
+        {
+            // USE WRITE RESULTS FROM EXCELAPP
+            List<String> results = new List<String>();
+            int c = listOfIBANs.Count;
+            for (int i = 0; i < c; i++)
+            {
+                String iban = listOfIBANs[i];
+                if (iban.Equals("NULL"))
+                {
+                    results.Add("Erreur :  l'IBAN est Null");
+                }
+                else if (iban.Contains(" "))
+                {
+                    results.Add("Erreur, cet IBAN contient des espaces");
+                }
+                else
+                {
+                    bool hasBeenFound = false;
+                    String countryCodeToAnalyse = iban.Substring(0, 2);
+                    int d = countryReferences.Count;
+                    for (int j = 0; j < d; j++)
+                    {
+                        if (countryCodeToAnalyse.Equals(countryReferences[j].CountryCode))
+                        {
+                            results.Add(countryReferences[j].CountryLocation);
+                            hasBeenFound = true;
+                            continue;
+                        }
+                    }
+                    if (!hasBeenFound)
+                    {
+                        results.Add("Erreur, le code pays de cet IBAN n'apparait pas dans la base de données");
+                    }
+                }
+            }
+            ExcelApp.WriteResults(results, columnToOverwrite);
+            MessageBox.Show("Traitement terminé", "ControleurRIB", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         public ExcelApp ExcelApp {get; set; }
         public String LoadedFileText {get; set; }
         public String ProcessProgressText { get; set; }
+        public List<Country> CountryReferences { get; set; }
     }
 }

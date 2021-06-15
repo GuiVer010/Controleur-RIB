@@ -11,9 +11,10 @@
     <Grid Background="White">
         <Button Command="{Binding OpenExcelFile}" Content="Charger un fichier" HorizontalAlignment="Left" Margin="335,58,0,0" VerticalAlignment="Top" Width="130"/>
         <TextBlock HorizontalAlignment="Left" Margin="335,83,0,0" TextWrapping="Wrap" Text="{Binding LoadedFileText}" VerticalAlignment="Top" Width="130"/>
-        <Button x:Name="StartAnalyse" Command="{Binding AnalyseRIB}" Content="Lancer l'analyse" HorizontalAlignment="Left" Margin="335,138,0,0" VerticalAlignment="Top" Width="130"/>
+        <Button x:Name="StartAnalyse" Command="{Binding AnalyseIBAN}" Content="Lancer l'analyse" HorizontalAlignment="Left" Margin="335,138,0,0" VerticalAlignment="Top" Width="130"/>
         <TextBlock HorizontalAlignment="Left" Margin="219,163,0,0" TextWrapping="Wrap" Text="Attention ! Les résultats seront incrits dans la colonne 4 du tableau, merci de vérifier au préalable que celle-ci est vide." VerticalAlignment="Top" Width="359"/>
         <TextBlock HorizontalAlignment="Left" Margin="219,212,0,0" TextWrapping="Wrap" Text="{Binding ProcessProgressText}" VerticalAlignment="Top" Width="359"/>
         <Button Command="{Binding CloseExcelFile}" Content="Libérer le fichier" HorizontalAlignment="Left" Margin="335,294,0,0" VerticalAlignment="Top" Width="130"/>
+        <Button Command="{Binding LoadReferenceFile}" Content="Charger le fichier de référence" HorizontalAlignment="Left" Margin="313,99,0,0" VerticalAlignment="Top" Width="173"/>
     </Grid>
 </Page>

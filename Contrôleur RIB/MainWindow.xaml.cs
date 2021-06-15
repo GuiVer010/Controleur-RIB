@@ -31,9 +31,12 @@ namespace Contrôleur_RIB
             base.OnClosing(e);
             ControleurRIBPage controleurRIBPage = MainFrame.Content as ControleurRIBPage;// Allows to call the function to release the Excel file from use when closing the main window (which shuts down the application in the current setup)
             VMControleurRIB vMControleurRIB = controleurRIBPage.DataContext as VMControleurRIB;
-            if (vMControleurRIB.ExcelApp.IsOpen)// Checks that a file was loaded and an object created before trying to call its function to prevent a crash
+            if (vMControleurRIB.ExcelApp != null)
             {
-                vMControleurRIB.ExcelApp.Terminate();
+                if (vMControleurRIB.ExcelApp.IsOpen)
+                {
+                    vMControleurRIB.ExcelApp.Terminate();// Automatically releases the previous file when the user loads a new one without releasing first.
+                }
             }
         }
     }

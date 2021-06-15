@@ -59,6 +59,7 @@
     <Compile Include="ControleurRIBPage.xaml.cs">
       <DependentUpon>ControleurRIBPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Country.cs" />
     <Compile Include="ExcelApp.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Compile Include="VMControleurRIB.cs" />

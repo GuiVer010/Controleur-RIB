@@ -34,10 +34,24 @@ namespace Contrôleur_RIB
             const int RIBLocationColumn = 1;// We define the column to read for RIBs
             for (int i = 2; i <= rowCount; i++)// Starting i at 2 because we want to skip row 1 which contains definitions and not data (Excel starts at 1 and not 0 like lists)
             {
-                Excel.Range range = (myWorksheet.Cells[i, RIBLocationColumn] as Excel.Range);// Iterating over the specific column containing RIBs on each line
+                Excel.Range range = myWorksheet.Cells[i, RIBLocationColumn] as Excel.Range;// Iterating over the specific column containing RIBs on each line
                 listOfRIBs.Add(range.Value.ToString());// We add the value to the list
             }
             return listOfRIBs;
+        }
+
+        public List<String> GetAllIBANs()
+        {
+            List<String> listOfIBANs = new List<String>();
+            Excel.Range excelRange = myWorksheet.UsedRange;
+            int rowCount = excelRange.Rows.Count;
+            const int IBANLocationColumn = 2;
+            for (int i = 4; i <= rowCount; i++)// Starting at line 4
+            {
+                Excel.Range range = myWorksheet.Cells[i, IBANLocationColumn] as Excel.Range;
+                listOfIBANs.Add(range.Value.ToString());
+            }
+            return listOfIBANs;
         }
 
         public Boolean ColumnIsEmpty(int columnToAnalyse)
@@ -70,11 +84,31 @@ namespace Contrôleur_RIB
         {
             Excel.Range excelRange = myWorksheet.UsedRange;// Range property returns how many rows and columns are used inside the Excel sheet, we use it to get the total amount of rows and columns
             int rowCount = excelRange.Rows.Count;
-            for (int i = 2; i <= rowCount; i++)
+            for (int i = 4; i <= rowCount; i++)// Value is 2 for RIbs, 4 for IBANs
             {
-                this.MyWorksheet.Cells[i, columnToOverwrite] = results[i-2];
+                this.MyWorksheet.Cells[i, columnToOverwrite] = results[i-4];// 4 here too
                 this.MyWorkbook.Save();
             }
+        }
+
+        public List<Country> CreateReferences()
+        {
+            List<Country> countryReferences = new List<Country>();
+            
+            Excel.Range excelRange = myWorksheet.UsedRange;
+            int rowCount = excelRange.Rows.Count;
+            for (int i = 2; i <= rowCount; i++)
+            {
+                Excel.Range range = myWorksheet.Cells[i, 1] as Excel.Range;
+                String countryName = range.Value;
+                range = myWorksheet.Cells[i, 2] as Excel.Range;
+                String countryCode = range.Value;
+                range = myWorksheet.Cells[i, 3] as Excel.Range;
+                String countryLocation = range.Value;
+
+                countryReferences.Add(new Country(countryName, countryCode, countryLocation));
+            }
+            return countryReferences;
         }
 
         public void Terminate()// Release the file from use when the application is shutting down
@@ -88,7 +122,6 @@ namespace Contrôleur_RIB
         public Excel.Workbook MyWorkbook { get; set; }
         public Excel.Worksheet MyWorksheet { get; set; }
         public String Path { get; set; }
-
         public bool IsOpen { get; set; }
     }
 }
