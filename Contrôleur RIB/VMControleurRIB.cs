@@ -102,42 +102,42 @@ namespace Contrôleur_RIB
         {
             if (ExcelApp != null)
             {
-                const int columnToOverwrite = 5;
-                if (ExcelApp.ColumnIsEmpty(columnToOverwrite))
+                const int columnToOverwrite = 5;// Defining the column in which the results will be written
+                if (ExcelApp.ColumnIsEmpty(columnToOverwrite))// If the column is empty we start the function
                 {
                     List<String> listOfIBANs = new List<String>();
-                    listOfIBANs = ExcelApp.GetAllIBANs();
-                    AnalyseAllIBANs(listOfIBANs, columnToOverwrite);
+                    listOfIBANs = ExcelApp.GetAllIBANs();// Getting a list of IBANs from the Excel file
+                    AnalyseAllIBANs(listOfIBANs, columnToOverwrite);// Starting the analyse
                 }
-                else
+                else// If not we ask user confirmation to overwrite the content
                 {
                     if (MessageBox.Show("La colonne N°"+ columnToOverwrite + " n'est pas vide, poursuivre l'exécution écrasera le contenu. Continuer ?", "ControleurRIB", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
                         List<String> listOfIBANs = new List<String>();
-                        listOfIBANs = ExcelApp.GetAllIBANs();
-                        AnalyseAllIBANs(listOfIBANs, columnToOverwrite);
+                        listOfIBANs = ExcelApp.GetAllIBANs();// Getting a list of IBANs from the Excel file
+                        AnalyseAllIBANs(listOfIBANs, columnToOverwrite);// Starting the analyse
                     }
                     else
                     {
-                        return;
+                        return;// If the user clicks "No", the function stops
                     }
                 }
             }
             else
             {
-                MessageBox.Show("Veuillez charger un fichier à analyser", "ControleurRIB", MessageBoxButton.OK, MessageBoxImage.Information);// User clicks "Analyse" button without having a file loaded. No need for this if we can disable the button prior to loading a file.
+                MessageBox.Show("Veuillez charger un fichier à analyser", "ControleurIBAN", MessageBoxButton.OK, MessageBoxImage.Information);// User clicks "Analyse" button without having a file loaded. No need for this if we can disable the button prior to loading a file.
             }
         }
 
-        private void LoadReferenceFile_Func()
+        private void LoadReferenceFile_Func()// Loading the file that holds all the countries for reference
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();// Instanciates the class
             openFileDialog.Filter = "Tableau Excel |*.xlsx;*.xlsm";// Adds a filter for Excel files only
             if (openFileDialog.ShowDialog() == DialogResult.OK)// Enters the IF if the user selected a file and clicked OK
             {
                 ExcelApp = new ExcelApp(openFileDialog.FileName);
-                countryReferences = ExcelApp.CreateReferences();
-                ExcelApp.Terminate();
+                countryReferences = ExcelApp.CreateReferences();// Loads the files into matching objects
+                ExcelApp.Terminate();// Releases the file
             }
         }
 
@@ -294,42 +294,45 @@ namespace Contrôleur_RIB
 
         private void AnalyseAllIBANs(List<String> listOfIBANs, int columnToOverwrite)
         {
-            // USE WRITE RESULTS FROM EXCELAPP
+            ProcessProgressText = "Nombre d'IBAN à traiter : " + listOfIBANs.Count.ToString();// Displaying the amount of IBANs to be processed
+            OnPropertyChanged("ProcessProgressText");
+
             List<String> results = new List<String>();
-            int c = listOfIBANs.Count;
-            for (int i = 0; i < c; i++)
+            int c = listOfIBANs.Count;// Storing the length of the array in a variable improves efficiency by avoiding to access it every loop
+            for (int i = 0; i < c; i++)// Actions done for each IBAN in the list
             {
                 String iban = listOfIBANs[i];
-                if (iban.Equals("NULL"))
+                if (iban.Equals("NULL"))// Checking for NULL case
                 {
                     results.Add("Erreur :  l'IBAN est Null");
                 }
-                else if (iban.Contains(" "))
+                else if (iban.Contains(" "))// Checking if it contains blank characters (only displaying an error, not trimming them)
                 {
                     results.Add("Erreur, cet IBAN contient des espaces");
                 }
-                else
+                else// If we have a valid String, we can compare codes
                 {
                     bool hasBeenFound = false;
-                    String countryCodeToAnalyse = iban.Substring(0, 2);
-                    int d = countryReferences.Count;
-                    for (int j = 0; j < d; j++)
+                    String countryCodeToAnalyse = iban.Substring(0, 2);// Taking the first 2 characters of the IBAN which corresponds to the country code
+                    int d = countryReferences.Count;// Same as above, using this line saves performance
+                    for (int j = 0; j < d; j++)// Iterating through country references array
                     {
-                        if (countryCodeToAnalyse.Equals(countryReferences[j].CountryCode))
+                        if (countryCodeToAnalyse.Equals(countryReferences[j].CountryCode))// If we have a matching country code, we add the location of the country in the results
                         {
                             results.Add(countryReferences[j].CountryLocation);
                             hasBeenFound = true;
                             continue;
                         }
                     }
-                    if (!hasBeenFound)
+                    if (!hasBeenFound)// If the IBAN starts by a code not present in the reference array, we display an error
                     {
                         results.Add("Erreur, le code pays de cet IBAN n'apparait pas dans la base de données");
                     }
                 }
             }
-            ExcelApp.WriteResults(results, columnToOverwrite);
-            MessageBox.Show("Traitement terminé", "ControleurRIB", MessageBoxButton.OK, MessageBoxImage.Information);
+            ExcelApp.WriteResults(results, columnToOverwrite);// Writing results in the Excel file
+            ProcessProgressText += "\nTraitement terminé.";// Showing end message
+            OnPropertyChanged("ProcessProgressText");
         }
 
         public ExcelApp ExcelApp {get; set; }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Contrôleur_RIB
 {
-    class Country
+    class Country// Basic class that serves to hold the required informations about countries, may be used for further data processing if needed
     {
         private String countryCode;
         private String countryName;

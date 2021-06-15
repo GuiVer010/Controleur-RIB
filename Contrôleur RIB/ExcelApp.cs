@@ -43,15 +43,15 @@ namespace Contrôleur_RIB
         public List<String> GetAllIBANs()
         {
             List<String> listOfIBANs = new List<String>();
-            Excel.Range excelRange = myWorksheet.UsedRange;
+            Excel.Range excelRange = myWorksheet.UsedRange;// Getting the size of the Excel grid
             int rowCount = excelRange.Rows.Count;
-            const int IBANLocationColumn = 2;
-            for (int i = 4; i <= rowCount; i++)// Starting at line 4
+            const int IBANLocationColumn = 2;// We know on which column the IBAN number is. We can imagine asking user input for this value eventually.
+            for (int i = 4; i <= rowCount; i++)// Starting at line 4 for the first IBAN
             {
                 Excel.Range range = myWorksheet.Cells[i, IBANLocationColumn] as Excel.Range;
                 listOfIBANs.Add(range.Value.ToString());
             }
-            return listOfIBANs;
+            return listOfIBANs;// Returning the list of all IBANs
         }
 
         public Boolean ColumnIsEmpty(int columnToAnalyse)
@@ -91,7 +91,7 @@ namespace Contrôleur_RIB
             }
         }
 
-        public List<Country> CreateReferences()
+        public List<Country> CreateReferences()// We load the country reference file and create objects to store data, before closing it again.
         {
             List<Country> countryReferences = new List<Country>();
             
