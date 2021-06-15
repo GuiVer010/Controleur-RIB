@@ -96,7 +96,7 @@ namespace Contrôleur_RIB
         {
             List<String> results = new List<String>();
 
-            ProcessProgressText = "Nombre de RIB à traiter : "+listOfRIBs.Capacity.ToString();
+            ProcessProgressText = "Nombre de RIB à traiter : "+listOfRIBs.Count.ToString();
             OnPropertyChanged("ProcessProgressText");
 
             foreach (var rib in listOfRIBs)
